@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, asc, eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/db/client";
-import { contacts, companies } from "@/db/schema";
+import { contacts } from "@/db/schema";
 import { ContactForm } from "@/features/contacts/components/contact-form";
+import { loadContactFormOptions } from "@/features/contacts/actions/options";
 import type { ContactFormData } from "@/features/contacts/schemas/contact";
 import { toDateInputValue } from "@/lib/forms";
 import { RELATIONSHIP_STRENGTHS, LANGUAGES } from "@/lib/constants";
@@ -26,11 +27,7 @@ export default async function EditContactPage({
 
   if (!contact) notFound();
 
-  const companyOptions = await db
-    .select({ id: companies.id, name: companies.name })
-    .from(companies)
-    .where(eq(companies.userId, user.id))
-    .orderBy(asc(companies.name));
+  const { companyOptions } = await loadContactFormOptions(user.id);
 
   const languageValue = (LANGUAGES as readonly string[]).includes(contact.language)
     ? (contact.language as ContactFormData["language"])

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
+import { ownedCompanyId, ownedContactId } from "@/lib/ownership";
 import { db } from "@/db/client";
 import { opportunities } from "@/db/schema";
 import { emptyToNull, parseDateInput } from "@/lib/forms";
@@ -24,8 +25,8 @@ export async function createOpportunity(input: unknown): Promise<ActionResult> {
     .insert(opportunities)
     .values({
       userId: user.id,
-      companyId: emptyToNull(v.companyId),
-      contactId: emptyToNull(v.contactId),
+      companyId: await ownedCompanyId(user.id, emptyToNull(v.companyId)),
+      contactId: await ownedContactId(user.id, emptyToNull(v.contactId)),
       title: v.title,
       source: emptyToNull(v.source),
       status: v.status,
@@ -61,8 +62,8 @@ export async function updateOpportunity(
   await db
     .update(opportunities)
     .set({
-      companyId: emptyToNull(v.companyId),
-      contactId: emptyToNull(v.contactId),
+      companyId: await ownedCompanyId(user.id, emptyToNull(v.companyId)),
+      contactId: await ownedContactId(user.id, emptyToNull(v.contactId)),
       title: v.title,
       source: emptyToNull(v.source),
       status: v.status,

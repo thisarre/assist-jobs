@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/db/client";
 import { contacts, companies } from "@/db/schema";
@@ -29,7 +29,10 @@ export default async function ContactsPage() {
           relationshipStrength: contacts.relationshipStrength,
         })
         .from(contacts)
-        .leftJoin(companies, eq(contacts.companyId, companies.id))
+        .leftJoin(
+          companies,
+          and(eq(contacts.companyId, companies.id), eq(companies.userId, user.id))
+        )
         .where(eq(contacts.userId, user.id))
         .orderBy(desc(contacts.createdAt))
     : [];

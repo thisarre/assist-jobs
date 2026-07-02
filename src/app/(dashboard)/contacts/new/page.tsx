@@ -1,19 +1,13 @@
 import Link from "next/link";
-import { asc, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
-import { db } from "@/db/client";
-import { companies } from "@/db/schema";
 import { ContactForm } from "@/features/contacts/components/contact-form";
+import { loadContactFormOptions } from "@/features/contacts/actions/options";
 
 export default async function NewContactPage() {
   const user = await getCurrentUser();
-  const companyOptions = user
-    ? await db
-        .select({ id: companies.id, name: companies.name })
-        .from(companies)
-        .where(eq(companies.userId, user.id))
-        .orderBy(asc(companies.name))
-    : [];
+  const { companyOptions } = user
+    ? await loadContactFormOptions(user.id)
+    : { companyOptions: [] };
 
   return (
     <div>

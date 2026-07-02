@@ -7,17 +7,7 @@ import { companies, contacts, opportunities } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/delete-button";
 import { deleteCompany } from "@/features/companies/actions/company-actions";
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">
-        {label}
-      </dt>
-      <dd className="mt-1 text-sm">{value || "—"}</dd>
-    </div>
-  );
-}
+import { Field } from "@/components/detail/field";
 
 export default async function CompanyDetailPage({
   params,

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/db/client";
 import { opportunities, companies } from "@/db/schema";
@@ -29,7 +29,10 @@ export default async function OpportunitiesPage() {
           dailyRate: opportunities.dailyRate,
         })
         .from(opportunities)
-        .leftJoin(companies, eq(opportunities.companyId, companies.id))
+        .leftJoin(
+          companies,
+          and(eq(opportunities.companyId, companies.id), eq(companies.userId, user.id))
+        )
         .where(eq(opportunities.userId, user.id))
         .orderBy(desc(opportunities.createdAt))
     : [];

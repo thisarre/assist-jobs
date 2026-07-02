@@ -8,15 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/delete-button";
 import { deleteContact } from "@/features/contacts/actions/contact-actions";
 import { toDateInputValue } from "@/lib/forms";
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-sm">{value || "—"}</dd>
-    </div>
-  );
-}
+import { Field } from "@/components/detail/field";
 
 export default async function ContactDetailPage({
   params,
@@ -88,6 +80,23 @@ export default async function ContactDetailPage({
         />
         <Field label="Email" value={contact.email} />
         <Field label="Phone" value={contact.phone} />
+        <Field
+          label="LinkedIn"
+          value={
+            contact.linkedinUrl ? (
+              <a
+                href={contact.linkedinUrl}
+                className="text-primary hover:underline"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {contact.linkedinUrl}
+              </a>
+            ) : (
+              ""
+            )
+          }
+        />
         <Field label="Language" value={contact.language} />
         <Field label="Relationship" value={contact.relationshipStrength} />
         <Field label="Next follow-up" value={toDateInputValue(contact.nextFollowupAt)} />

@@ -8,15 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/delete-button";
 import { deleteOpportunity } from "@/features/opportunities/actions/opportunity-actions";
 import { toDateInputValue } from "@/lib/forms";
-
-function Field({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <dt className="text-xs uppercase tracking-wide text-muted-foreground">{label}</dt>
-      <dd className="mt-1 text-sm">{value || "—"}</dd>
-    </div>
-  );
-}
+import { Field } from "@/components/detail/field";
 
 export default async function OpportunityDetailPage({
   params,
