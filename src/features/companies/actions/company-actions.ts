@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { and, eq } from "drizzle-orm";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/db/client";
 import { companies } from "@/db/schema";
 import { emptyToNull } from "@/lib/forms";
@@ -13,10 +13,7 @@ type ActionResult =
   | { error: string | Record<string, string[] | undefined> };
 
 export async function createCompany(input: unknown): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return { error: "Not authenticated" };
 
   const parsed = companySchema.safeParse(input);
@@ -49,10 +46,7 @@ export async function updateCompany(
   id: string,
   input: unknown
 ): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return { error: "Not authenticated" };
 
   const parsed = companySchema.safeParse(input);
@@ -83,10 +77,7 @@ export async function updateCompany(
 }
 
 export async function deleteCompany(id: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) return { error: "Not authenticated" };
 
   await db

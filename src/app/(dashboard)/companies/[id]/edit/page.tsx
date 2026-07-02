@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { and, eq } from "drizzle-orm";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/db/client";
 import { companies } from "@/db/schema";
 import { CompanyForm } from "@/features/companies/components/company-form";
 import type { CompanyFormData } from "@/features/companies/schemas/company";
-import { COMPANY_SIZES } from "@/lib/constants";
+import { COMPANY_SIZES, RELATIONSHIP_STATUSES } from "@/lib/constants";
 
 export default async function EditCompanyPage({
   params,
@@ -14,10 +14,7 @@ export default async function EditCompanyPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
   if (!user) notFound();
 
   const [company] = await db
@@ -28,11 +25,18 @@ export default async function EditCompanyPage({
 
   if (!company) notFound();
 
-  // Map the DB row (nullable columns) to the form's non-null shape.
+  // Map the DB row (nullable / free-text columns) to the form's typed shape,
+  // validating enum columns before casting.
   const sizeValue =
     company.size && (COMPANY_SIZES as readonly string[]).includes(company.size)
       ? (company.size as CompanyFormData["size"])
       : "";
+
+  const relationshipStatusValue = (
+    RELATIONSHIP_STATUSES as readonly string[]
+  ).includes(company.relationshipStatus)
+    ? (company.relationshipStatus as CompanyFormData["relationshipStatus"])
+    : "cold";
 
   const initialData: CompanyFormData = {
     name: company.name,
@@ -44,8 +48,7 @@ export default async function EditCompanyPage({
     technologies: company.technologies ?? [],
     hiringSignals: company.hiringSignals ?? "",
     notes: company.notes ?? "",
-    relationshipStatus:
-      company.relationshipStatus as CompanyFormData["relationshipStatus"],
+    relationshipStatus: relationshipStatusValue,
     score: company.score ?? 0,
   };
 

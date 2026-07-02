@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/db/client";
 import { companies } from "@/db/schema";
 import { Button } from "@/components/ui/button";
@@ -16,10 +16,7 @@ type CompanyRow = {
 };
 
 export default async function CompaniesPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
   const rows: CompanyRow[] = user
     ? await db

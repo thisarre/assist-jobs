@@ -155,7 +155,13 @@ export function CompanyForm({ companyId, initialData }: CompanyFormProps) {
             type="number"
             min={0}
             max={100}
-            {...register("score", { valueAsNumber: true })}
+            {...register("score", {
+              // Clearing the field yields "" → treat as 0 (unset) instead of NaN.
+              setValueAs: (v) => {
+                const n = typeof v === "number" ? v : Number(v);
+                return v === "" || v === null || Number.isNaN(n) ? 0 : n;
+              },
+            })}
           />
           {errors.score && (
             <p className="text-sm text-destructive">{errors.score.message}</p>
