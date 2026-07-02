@@ -9,6 +9,11 @@ import { DeleteButton } from "@/components/delete-button";
 import { deleteContact } from "@/features/contacts/actions/contact-actions";
 import { toDateInputValue } from "@/lib/forms";
 import { Field } from "@/components/detail/field";
+import { TagManager } from "@/features/tags/components/tag-manager";
+import { InteractionForm } from "@/features/interactions/components/interaction-form";
+import { InteractionTimeline } from "@/features/interactions/components/interaction-timeline";
+import { loadAssignedTags } from "@/features/tags/queries";
+import { loadInteractions } from "@/features/interactions/queries";
 
 export default async function ContactDetailPage({
   params,
@@ -40,6 +45,9 @@ export default async function ContactDetailPage({
     .from(opportunities)
     .where(and(eq(opportunities.contactId, contact.id), eq(opportunities.userId, user.id)))
     .orderBy(desc(opportunities.createdAt));
+
+  const assignedTags = await loadAssignedTags(user.id, "contact", contact.id);
+  const timeline = await loadInteractions(user.id, "contact", contact.id);
 
   return (
     <div>
@@ -120,6 +128,24 @@ export default async function ContactDetailPage({
           </ul>
         )}
       </div>
+
+      <section className="mt-10 max-w-2xl space-y-8">
+        <div>
+          <h2 className="text-sm font-semibold">Tags</h2>
+          <div className="mt-3">
+            <TagManager entityType="contact" entityId={contact.id} assignedTags={assignedTags} />
+          </div>
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold">Interactions</h2>
+          <div className="mt-3">
+            <InteractionForm entityType="contact" entityId={contact.id} />
+          </div>
+          <div className="mt-4">
+            <InteractionTimeline items={timeline} />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

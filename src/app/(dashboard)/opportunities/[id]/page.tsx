@@ -9,6 +9,11 @@ import { DeleteButton } from "@/components/delete-button";
 import { deleteOpportunity } from "@/features/opportunities/actions/opportunity-actions";
 import { toDateInputValue } from "@/lib/forms";
 import { Field } from "@/components/detail/field";
+import { TagManager } from "@/features/tags/components/tag-manager";
+import { InteractionForm } from "@/features/interactions/components/interaction-form";
+import { InteractionTimeline } from "@/features/interactions/components/interaction-timeline";
+import { loadAssignedTags } from "@/features/tags/queries";
+import { loadInteractions } from "@/features/interactions/queries";
 
 export default async function OpportunityDetailPage({
   params,
@@ -42,6 +47,9 @@ export default async function OpportunityDetailPage({
         .where(and(eq(contacts.id, opportunity.contactId), eq(contacts.userId, user.id)))
         .limit(1)
     : [];
+
+  const assignedTags = await loadAssignedTags(user.id, "opportunity", opportunity.id);
+  const timeline = await loadInteractions(user.id, "opportunity", opportunity.id);
 
   return (
     <div>
@@ -109,6 +117,24 @@ export default async function OpportunityDetailPage({
         <Field label="Description" value={opportunity.description} />
         <Field label="Notes" value={opportunity.notes} />
       </dl>
+
+      <section className="mt-10 max-w-2xl space-y-8">
+        <div>
+          <h2 className="text-sm font-semibold">Tags</h2>
+          <div className="mt-3">
+            <TagManager entityType="opportunity" entityId={opportunity.id} assignedTags={assignedTags} />
+          </div>
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold">Interactions</h2>
+          <div className="mt-3">
+            <InteractionForm entityType="opportunity" entityId={opportunity.id} />
+          </div>
+          <div className="mt-4">
+            <InteractionTimeline items={timeline} />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

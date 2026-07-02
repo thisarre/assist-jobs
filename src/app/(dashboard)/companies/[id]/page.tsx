@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/delete-button";
 import { deleteCompany } from "@/features/companies/actions/company-actions";
 import { Field } from "@/components/detail/field";
+import { TagManager } from "@/features/tags/components/tag-manager";
+import { InteractionForm } from "@/features/interactions/components/interaction-form";
+import { InteractionTimeline } from "@/features/interactions/components/interaction-timeline";
+import { loadAssignedTags } from "@/features/tags/queries";
+import { loadInteractions } from "@/features/interactions/queries";
 
 export default async function CompanyDetailPage({
   params,
@@ -46,6 +51,9 @@ export default async function CompanyDetailPage({
     .from(opportunities)
     .where(and(eq(opportunities.companyId, company.id), eq(opportunities.userId, user.id)))
     .orderBy(desc(opportunities.createdAt));
+
+  const assignedTags = await loadAssignedTags(user.id, "company", company.id);
+  const timeline = await loadInteractions(user.id, "company", company.id);
 
   return (
     <div>
@@ -134,6 +142,24 @@ export default async function CompanyDetailPage({
           )}
         </div>
       </div>
+
+      <section className="mt-10 max-w-2xl space-y-8">
+        <div>
+          <h2 className="text-sm font-semibold">Tags</h2>
+          <div className="mt-3">
+            <TagManager entityType="company" entityId={company.id} assignedTags={assignedTags} />
+          </div>
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold">Interactions</h2>
+          <div className="mt-3">
+            <InteractionForm entityType="company" entityId={company.id} />
+          </div>
+          <div className="mt-4">
+            <InteractionTimeline items={timeline} />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
