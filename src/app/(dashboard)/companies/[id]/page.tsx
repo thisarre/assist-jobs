@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/db/client";
-import { companies } from "@/db/schema";
+import { companies, contacts, opportunities } from "@/db/schema";
 import { Button } from "@/components/ui/button";
 import { DeleteButton } from "@/components/delete-button";
 import { deleteCompany } from "@/features/companies/actions/company-actions";
@@ -35,6 +35,27 @@ export default async function CompanyDetailPage({
     .limit(1);
 
   if (!company) notFound();
+
+  const relatedContacts = await db
+    .select({
+      id: contacts.id,
+      firstName: contacts.firstName,
+      lastName: contacts.lastName,
+      role: contacts.role,
+    })
+    .from(contacts)
+    .where(and(eq(contacts.companyId, company.id), eq(contacts.userId, user.id)))
+    .orderBy(desc(contacts.createdAt));
+
+  const relatedOpportunities = await db
+    .select({
+      id: opportunities.id,
+      title: opportunities.title,
+      status: opportunities.status,
+    })
+    .from(opportunities)
+    .where(and(eq(opportunities.companyId, company.id), eq(opportunities.userId, user.id)))
+    .orderBy(desc(opportunities.createdAt));
 
   return (
     <div>
@@ -85,6 +106,44 @@ export default async function CompanyDetailPage({
         <Field label="Hiring signals" value={company.hiringSignals} />
         <Field label="Notes" value={company.notes} />
       </dl>
+
+      <div className="mt-10 grid max-w-2xl gap-8 md:grid-cols-2">
+        <div>
+          <h2 className="text-sm font-semibold">Contacts</h2>
+          {relatedContacts.length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">No contacts yet.</p>
+          ) : (
+            <ul className="mt-2 space-y-1">
+              {relatedContacts.map((c) => (
+                <li key={c.id} className="text-sm">
+                  <Link href={`/contacts/${c.id}`} className="text-primary hover:underline">
+                    {c.firstName} {c.lastName}
+                  </Link>
+                  {c.role ? <span className="text-muted-foreground"> · {c.role}</span> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <div>
+          <h2 className="text-sm font-semibold">Opportunities</h2>
+          {relatedOpportunities.length === 0 ? (
+            <p className="mt-2 text-sm text-muted-foreground">No opportunities yet.</p>
+          ) : (
+            <ul className="mt-2 space-y-1">
+              {relatedOpportunities.map((o) => (
+                <li key={o.id} className="text-sm">
+                  <Link href={`/opportunities/${o.id}`} className="text-primary hover:underline">
+                    {o.title}
+                  </Link>
+                  <span className="text-muted-foreground"> · {o.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
