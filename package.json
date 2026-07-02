@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "db:seed": "npx tsx --env-file=.env.local src/db/seed.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
