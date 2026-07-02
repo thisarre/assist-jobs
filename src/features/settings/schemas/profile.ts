@@ -17,4 +17,7 @@ export const profileSchema = z.object({
     .default(["fr"]),
 });
 
-export type ProfileFormData = z.infer<typeof profileSchema>;
+// Output type: all fields present after Zod applies defaults (used for stored/parsed data).
+export type ProfileFormData = z.output<typeof profileSchema>;
+// Input type: fields with defaults are optional (used for the form's field values).
+export type ProfileFormValues = z.input<typeof profileSchema>;
