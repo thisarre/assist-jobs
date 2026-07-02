@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db/client";
-import { companies, contacts } from "@/db/schema";
+import { companies, contacts, opportunities } from "@/db/schema";
+import type { EntityType } from "@/types";
 
 /**
  * Validates that a foreign-key id submitted from a form actually belongs to the
@@ -34,4 +35,29 @@ export async function ownedContactId(
     .where(and(eq(contacts.id, id), eq(contacts.userId, userId)))
     .limit(1);
   return row?.id ?? null;
+}
+
+/** Returns the opportunity id if it belongs to the user, else null. See ownedCompanyId. */
+export async function ownedOpportunityId(
+  userId: string,
+  id: string | null
+): Promise<string | null> {
+  if (!id) return null;
+  const [row] = await db
+    .select({ id: opportunities.id })
+    .from(opportunities)
+    .where(and(eq(opportunities.id, id), eq(opportunities.userId, userId)))
+    .limit(1);
+  return row?.id ?? null;
+}
+
+/** True if the given entity (of entityType) belongs to the user. */
+export async function ownsEntity(
+  userId: string,
+  entityType: EntityType,
+  entityId: string
+): Promise<boolean> {
+  if (entityType === "company") return (await ownedCompanyId(userId, entityId)) !== null;
+  if (entityType === "contact") return (await ownedContactId(userId, entityId)) !== null;
+  return (await ownedOpportunityId(userId, entityId)) !== null;
 }

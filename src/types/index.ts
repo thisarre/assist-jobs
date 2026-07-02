@@ -11,6 +11,7 @@ import type {
   AI_GENERATION_TYPES,
   AI_GENERATION_STATUSES,
   LANGUAGES,
+  ENTITY_TYPES,
 } from "@/lib/constants";
 
 export type OpportunityStatus = (typeof OPPORTUNITY_STATUSES)[number];
@@ -25,3 +26,4 @@ export type OpportunitySource = (typeof OPPORTUNITY_SOURCES)[number];
 export type AiGenerationType = (typeof AI_GENERATION_TYPES)[number];
 export type AiGenerationStatus = (typeof AI_GENERATION_STATUSES)[number];
 export type Language = (typeof LANGUAGES)[number];
+export type EntityType = (typeof ENTITY_TYPES)[number];

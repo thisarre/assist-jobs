@@ -82,3 +82,6 @@ export const AI_GENERATION_STATUSES = [
 ] as const;
 
 export const LANGUAGES = ["fr", "en"] as const;
+
+// The three entities that interactions and tags can attach to.
+export const ENTITY_TYPES = ["company", "contact", "opportunity"] as const;
