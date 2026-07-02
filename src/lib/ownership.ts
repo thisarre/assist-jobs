@@ -59,5 +59,7 @@ export async function ownsEntity(
 ): Promise<boolean> {
   if (entityType === "company") return (await ownedCompanyId(userId, entityId)) !== null;
   if (entityType === "contact") return (await ownedContactId(userId, entityId)) !== null;
-  return (await ownedOpportunityId(userId, entityId)) !== null;
+  if (entityType === "opportunity") return (await ownedOpportunityId(userId, entityId)) !== null;
+  // Fail closed on any unknown entity type — never fall through to a real check.
+  return false;
 }

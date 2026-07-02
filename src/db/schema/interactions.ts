@@ -30,5 +30,6 @@ export const interactions = pgTable(
     index("interactions_user_id_idx").on(table.userId),
     index("interactions_opportunity_id_idx").on(table.opportunityId),
     index("interactions_contact_id_idx").on(table.contactId),
+    index("interactions_company_id_idx").on(table.companyId),
   ]
 );
