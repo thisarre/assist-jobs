@@ -1,0 +1,4 @@
+# Makes freelance-os its own pnpm workspace root so `pnpm install` run here is never
+# captured by the ancestor workspace at /Users/NNSarreTh/Documents/Dev (which would
+# re-resolve unrelated deps and corrupt node_modules). Standalone project, no sub-packages.
+packages: []
