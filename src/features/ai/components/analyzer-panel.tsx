@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   analyzeText,
   createOpportunityFromAnalysis,
+  scrapeUrl,
 } from "@/features/ai/actions/analyze-actions";
 import type { Analysis } from "@/features/ai/schemas/analysis";
 import { Button } from "@/components/ui/button";
@@ -19,6 +20,9 @@ export function AnalyzerPanel() {
   const [generationId, setGenerationId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mode, setMode] = useState<"url" | "text">("text");
+  const [url, setUrl] = useState("");
+  const [sourceUrl, setSourceUrl] = useState<string | null>(null);
 
   async function onAnalyze() {
     setBusy(true);
@@ -34,11 +38,26 @@ export function AnalyzerPanel() {
     setBusy(false);
   }
 
+  async function onScrape() {
+    setBusy(true);
+    setError(null);
+    const result = await scrapeUrl({ url });
+    if ("error" in result) {
+      setError(result.error);
+      setBusy(false);
+      return;
+    }
+    setText(result.markdown);
+    setSourceUrl(result.sourceUrl);
+    setMode("text"); // switch to the editable preview (existing textarea)
+    setBusy(false);
+  }
+
   async function onCreate() {
     if (!analysis || !generationId) return;
     setBusy(true);
     setError(null);
-    const result = await createOpportunityFromAnalysis(generationId, analysis);
+    const result = await createOpportunityFromAnalysis(generationId, analysis, sourceUrl);
     if ("error" in result) {
       setError(result.error);
       setBusy(false);
@@ -55,20 +74,57 @@ export function AnalyzerPanel() {
   if (!analysis) {
     return (
       <div className="max-w-2xl space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="analyze-text">Paste a job description or recruiter message</Label>
-          <Textarea
-            id="analyze-text"
-            className="min-h-40"
-            placeholder="Paste the text here..."
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-          />
+        <div className="inline-flex rounded-md border border-border p-0.5 text-sm">
+          <button
+            type="button"
+            onClick={() => setMode("text")}
+            className={`rounded px-3 py-1 ${mode === "text" ? "bg-muted font-medium" : "text-muted-foreground"}`}
+          >
+            Texte
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("url")}
+            className={`rounded px-3 py-1 ${mode === "url" ? "bg-muted font-medium" : "text-muted-foreground"}`}
+          >
+            URL
+          </button>
         </div>
-        {error && <p className="text-sm text-destructive">{error}</p>}
-        <Button onClick={onAnalyze} disabled={busy || text.trim().length === 0}>
-          {busy ? "Analyzing..." : "Analyze"}
-        </Button>
+
+        {mode === "url" ? (
+          <div className="space-y-2">
+            <Label htmlFor="analyze-url">Colle l&apos;URL d&apos;une offre</Label>
+            <Input
+              id="analyze-url"
+              type="url"
+              placeholder="https://www.free-work.com/…"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button onClick={onScrape} disabled={busy || url.trim().length === 0}>
+              {busy ? "Récupération…" : "Récupérer"}
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <Label htmlFor="analyze-text">Paste a job description or recruiter message</Label>
+            <Textarea
+              id="analyze-text"
+              className="min-h-40"
+              placeholder="Paste the text here..."
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+            />
+            {sourceUrl && (
+              <p className="text-xs text-muted-foreground">Source : {sourceUrl}</p>
+            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
+            <Button onClick={onAnalyze} disabled={busy || text.trim().length === 0}>
+              {busy ? "Analyzing..." : "Analyze"}
+            </Button>
+          </div>
+        )}
       </div>
     );
   }
