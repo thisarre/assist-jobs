@@ -10,6 +10,10 @@ export default function DashboardLoading() {
           <div key={i} className="h-16 animate-pulse rounded-lg bg-muted" />
         ))}
       </div>
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="h-40 animate-pulse rounded-lg bg-muted" />
+        <div className="h-40 animate-pulse rounded-lg bg-muted" />
+      </div>
     </div>
   );
 }
