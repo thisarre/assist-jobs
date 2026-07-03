@@ -78,14 +78,16 @@ async function getPipelineRows(userId: string): Promise<PipelineOppRow[]> {
 
 async function getWeeklyActivity(userId: string, now: Date): Promise<WeeklyActivity> {
   const since = new Date(now.getTime() - WEEK_MS);
-  const [i] = await db
-    .select({ n: count() })
-    .from(interactions)
-    .where(and(eq(interactions.userId, userId), gte(interactions.createdAt, since)));
-  const [o] = await db
-    .select({ n: count() })
-    .from(opportunities)
-    .where(and(eq(opportunities.userId, userId), gte(opportunities.createdAt, since)));
+  const [[i], [o]] = await Promise.all([
+    db
+      .select({ n: count() })
+      .from(interactions)
+      .where(and(eq(interactions.userId, userId), gte(interactions.createdAt, since))),
+    db
+      .select({ n: count() })
+      .from(opportunities)
+      .where(and(eq(opportunities.userId, userId), gte(opportunities.createdAt, since))),
+  ]);
   return { interactions: i?.n ?? 0, opportunities: o?.n ?? 0 };
 }
 
