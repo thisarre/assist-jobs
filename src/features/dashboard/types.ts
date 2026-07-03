@@ -1,4 +1,3 @@
-// src/features/dashboard/types.ts
 export type ActionKind =
   | "followup_opportunity"
   | "followup_contact"
