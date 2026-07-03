@@ -13,6 +13,7 @@ import { InteractionForm } from "@/features/interactions/components/interaction-
 import { InteractionTimeline } from "@/features/interactions/components/interaction-timeline";
 import { loadAssignedTags } from "@/features/tags/queries";
 import { loadInteractions } from "@/features/interactions/queries";
+import { CompanySummaryPanel } from "@/features/ai/components/company-summary-panel";
 
 export default async function CompanyDetailPage({
   params,
@@ -157,6 +158,16 @@ export default async function CompanyDetailPage({
           </div>
           <div className="mt-4">
             <InteractionTimeline items={timeline} />
+          </div>
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold">AI Summary</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Paste the company&apos;s about page or notes to extract a summary, signals, and a
+            relevance score — then apply the industry and hiring signals to this company.
+          </p>
+          <div className="mt-3">
+            <CompanySummaryPanel companyId={company.id} />
           </div>
         </div>
       </section>
