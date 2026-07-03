@@ -51,8 +51,14 @@ export function buildActions(
   const nowMs = now.getTime();
 
   for (const o of opps) {
-    // Rule 1: opportunity follow-up due.
-    if (o.nextFollowupAt && o.nextFollowupAt.getTime() <= nowMs) {
+    // Rule 1: opportunity follow-up due. Guarded on active status so a stale
+    // follow-up on a won/lost/archived opp is never surfaced — consistent with
+    // rules 3/4 below (queries.ts also excludes terminal rows upstream).
+    if (
+      isActiveStatus(o.status) &&
+      o.nextFollowupAt &&
+      o.nextFollowupAt.getTime() <= nowMs
+    ) {
       add({
         kind: "followup_opportunity",
         entity: "opportunity",
@@ -81,22 +87,20 @@ export function buildActions(
       });
     }
     // Rule 4: contacted, no reply for N days, no follow-up scheduled.
-    if (
-      o.status === "contacted" &&
-      !o.nextFollowupAt &&
-      o.lastInteractionAt &&
-      daysBetween(now, o.lastInteractionAt) >= CONTACTED_NO_REPLY_DAYS
-    ) {
-      add({
-        kind: "no_reply",
-        entity: "opportunity",
-        id: o.id,
-        title: o.title,
-        subtitle: `No reply for ${daysBetween(now, o.lastInteractionAt)} days`,
-        href: `/opportunities/${o.id}`,
-        dueAt: o.lastInteractionAt,
-        priority: 2,
-      });
+    if (o.status === "contacted" && !o.nextFollowupAt && o.lastInteractionAt) {
+      const idleDays = daysBetween(now, o.lastInteractionAt);
+      if (idleDays >= CONTACTED_NO_REPLY_DAYS) {
+        add({
+          kind: "no_reply",
+          entity: "opportunity",
+          id: o.id,
+          title: o.title,
+          subtitle: `No reply for ${idleDays} days`,
+          href: `/opportunities/${o.id}`,
+          dueAt: o.lastInteractionAt,
+          priority: 2,
+        });
+      }
     }
   }
 
@@ -116,23 +120,25 @@ export function buildActions(
       });
     }
     // Rule 5: nurture-strength contact gone quiet, no follow-up scheduled.
-    if (
-      NURTURE_SET.has(c.relationshipStrength) &&
-      !c.nextFollowupAt &&
-      (!c.lastInteractionAt || daysBetween(now, c.lastInteractionAt) >= WARM_IDLE_DAYS)
-    ) {
-      add({
-        kind: "warm_contact",
-        entity: "contact",
-        id: c.id,
-        title: name,
-        subtitle: c.lastInteractionAt
-          ? `No contact for ${daysBetween(now, c.lastInteractionAt)} days`
-          : "No interaction yet — reconnect",
-        href: `/contacts/${c.id}`,
-        dueAt: c.lastInteractionAt,
-        priority: 3,
-      });
+    if (NURTURE_SET.has(c.relationshipStrength) && !c.nextFollowupAt) {
+      const idleDays = c.lastInteractionAt
+        ? daysBetween(now, c.lastInteractionAt)
+        : null;
+      if (idleDays === null || idleDays >= WARM_IDLE_DAYS) {
+        add({
+          kind: "warm_contact",
+          entity: "contact",
+          id: c.id,
+          title: name,
+          subtitle:
+            idleDays === null
+              ? "No interaction yet — reconnect"
+              : `No contact for ${idleDays} days`,
+          href: `/contacts/${c.id}`,
+          dueAt: c.lastInteractionAt,
+          priority: 3,
+        });
+      }
     }
   }
 

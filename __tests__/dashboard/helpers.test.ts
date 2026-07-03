@@ -151,6 +151,50 @@ describe("buildActions", () => {
     expect(actions[0].priority).toBe(0);
     expect(actions[0].kind).toBe("followup_opportunity");
   });
+
+  it("surfaces a follow-up due exactly now as 'due today'", () => {
+    const actions = buildActions([opp({ nextFollowupAt: NOW })], [], NOW);
+    expect(actions).toHaveLength(1);
+    expect(actions[0].subtitle).toBe("Follow-up due today");
+  });
+
+  it("surfaces no_reply exactly at the threshold (7 days)", () => {
+    const actions = buildActions(
+      [opp({ status: "contacted", lastInteractionAt: daysAgo(7) })],
+      [],
+      NOW
+    );
+    expect(actions).toHaveLength(1);
+    expect(actions[0].kind).toBe("no_reply");
+  });
+
+  it("does not surface no_reply one day under the threshold (6 days)", () => {
+    const actions = buildActions(
+      [opp({ status: "contacted", lastInteractionAt: daysAgo(6) })],
+      [],
+      NOW
+    );
+    expect(actions).toHaveLength(0);
+  });
+
+  it("surfaces warm_contact exactly at the idle threshold (14 days)", () => {
+    const actions = buildActions(
+      [],
+      [contact({ relationshipStrength: "strong", lastInteractionAt: daysAgo(14) })],
+      NOW
+    );
+    expect(actions).toHaveLength(1);
+    expect(actions[0].kind).toBe("warm_contact");
+  });
+
+  it("does not surface a follow-up for a terminal-status opportunity", () => {
+    const actions = buildActions(
+      [opp({ status: "won", nextFollowupAt: daysAgo(5) })],
+      [],
+      NOW
+    );
+    expect(actions).toHaveLength(0);
+  });
 });
 
 describe("sortActions", () => {
@@ -187,6 +231,12 @@ describe("capActions", () => {
     const { visible, truncatedCount } = capActions(a, 12);
     expect(visible).toHaveLength(12);
     expect(truncatedCount).toBe(3);
+  });
+  it("returns all when exactly at the cap", () => {
+    const a = Array.from({ length: 12 }, (_, i) => ({ id: String(i) })) as DashboardAction[];
+    const { visible, truncatedCount } = capActions(a, 12);
+    expect(visible).toHaveLength(12);
+    expect(truncatedCount).toBe(0);
   });
 });
 

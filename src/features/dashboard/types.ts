@@ -12,6 +12,11 @@ export type DashboardAction = {
   title: string;
   subtitle: string;
   href: string;
+  /**
+   * Sort key. For follow-up rules this is the future due date; for no_reply /
+   * warm_contact it is the last-interaction date (a past date). Ascending order
+   * surfaces the most urgent first either way. `null` sorts last.
+   */
   dueAt: Date | null;
   priority: number;
 };
