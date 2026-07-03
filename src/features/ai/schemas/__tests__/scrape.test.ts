@@ -16,4 +16,14 @@ describe("scrapeInputSchema", () => {
     const r = scrapeInputSchema.safeParse({ url: "" });
     expect(r.success).toBe(false);
   });
+
+  it("rejette un schéma non http(s) (ftp)", () => {
+    const r = scrapeInputSchema.safeParse({ url: "ftp://example.com" });
+    expect(r.success).toBe(false);
+  });
+
+  it("accepte une URL https entourée d'espaces (trim)", () => {
+    const r = scrapeInputSchema.safeParse({ url: "  https://www.free-work.com/x  " });
+    expect(r.success).toBe(true);
+  });
 });

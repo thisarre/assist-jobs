@@ -90,6 +90,7 @@ export async function createOpportunityFromAnalysis(
 
   // daily_rate / probability are integer columns — round the AI's numbers.
   const dailyRate = a.estimatedDailyRate == null ? 0 : Math.round(a.estimatedDailyRate);
+  const trimmedSourceUrl = sourceUrl?.trim() || null;
 
   try {
     // Find-or-create the company by name (user-scoped).
@@ -122,8 +123,9 @@ export async function createOpportunityFromAnalysis(
       .insert(opportunities)
       .values({
         userId: user.id,
-        sourceUrl: sourceUrl?.trim() || null,
-        source: sourceUrl?.trim() ? "website" : null,
+        sourceUrl: trimmedSourceUrl,
+        // "website" is a valid OPPORTUNITY_SOURCES value (src/lib/constants.ts)
+        source: trimmedSourceUrl ? "website" : null,
         companyId,
         title: a.role.trim() || "Untitled opportunity",
         status: "detected",
