@@ -50,7 +50,7 @@ export function SourcePane({
               onChange={(e) => onUrlChange(e.target.value)}
               disabled={disabled}
             />
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <Button onClick={onScrape} disabled={disabled || url.trim().length === 0}>
               {scraping ? "Récupération…" : "Récupérer"}
             </Button>
@@ -67,7 +67,7 @@ export function SourcePane({
               onChange={(e) => onTextChange(e.target.value)}
               disabled={disabled}
             />
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
             <div className="flex justify-end">
               <Button onClick={onAnalyze} disabled={disabled || text.trim().length === 0}>
                 {analyzing ? "Analyse…" : "Analyser →"}
