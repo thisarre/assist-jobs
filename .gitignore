@@ -47,3 +47,6 @@ next-env.d.ts
 
 # Supabase
 supabase/.temp/
+
+# Visual brainstorming companion
+.superpowers/
