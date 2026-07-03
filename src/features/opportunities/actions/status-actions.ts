@@ -25,5 +25,6 @@ export async function updateOpportunityStatus(
     .where(and(eq(opportunities.id, id), eq(opportunities.userId, user.id)));
 
   revalidatePath("/opportunities");
+  revalidatePath(`/opportunities/${id}`);
   return { success: true, id };
 }
