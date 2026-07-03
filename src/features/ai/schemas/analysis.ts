@@ -12,7 +12,7 @@ export const analysisSchema = z.object({
   seniority: z.string(),
   location: z.string(),
   remotePolicy: z.string(),
-  estimatedDailyRate: z.number().nullable(),
+  estimatedDailyRate: z.number().min(0).nullable(),
   matchScore: z.number().min(0).max(100),
   strengths: z.array(z.string()),
   concerns: z.array(z.string()),

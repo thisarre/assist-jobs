@@ -81,62 +81,69 @@ export async function createOpportunityFromAnalysis(
   if (!parsed.success) return { error: "Invalid analysis data" };
   const a = parsed.data;
 
-  // Find-or-create the company by name (user-scoped).
-  let companyId: string | null = null;
-  const name = a.companyName.trim();
-  if (name) {
-    const [existing] = await db
-      .select({ id: companies.id })
-      .from(companies)
-      .where(and(eq(companies.userId, user.id), eq(companies.name, name)))
-      .limit(1);
-    if (existing) {
-      companyId = existing.id;
-    } else {
-      const [co] = await db
-        .insert(companies)
-        .values({
-          userId: user.id,
-          name,
-          location: emptyToNull(a.location),
-          technologies: a.technologies,
-          relationshipStatus: "cold",
-        })
-        .returning({ id: companies.id });
-      companyId = co.id;
+  // daily_rate / probability are integer columns — round the AI's numbers.
+  const dailyRate = a.estimatedDailyRate == null ? 0 : Math.round(a.estimatedDailyRate);
+
+  try {
+    // Find-or-create the company by name (user-scoped).
+    let companyId: string | null = null;
+    const name = a.companyName.trim();
+    if (name) {
+      const [existing] = await db
+        .select({ id: companies.id })
+        .from(companies)
+        .where(and(eq(companies.userId, user.id), eq(companies.name, name)))
+        .limit(1);
+      if (existing) {
+        companyId = existing.id;
+      } else {
+        const [co] = await db
+          .insert(companies)
+          .values({
+            userId: user.id,
+            name,
+            location: emptyToNull(a.location),
+            technologies: a.technologies,
+            relationshipStatus: "cold",
+          })
+          .returning({ id: companies.id });
+        companyId = co.id;
+      }
     }
+
+    const [op] = await db
+      .insert(opportunities)
+      .values({
+        userId: user.id,
+        companyId,
+        title: a.role.trim() || "Untitled opportunity",
+        status: "detected",
+        priority: "medium",
+        probability: Math.round(a.matchScore),
+        dailyRate,
+        location: emptyToNull(a.location),
+        remotePolicy: matchRemotePolicy(a.remotePolicy),
+        technologies: a.technologies,
+        description: a.explanation,
+        notes: `AI match ${a.matchScore}/100.\nStrengths: ${a.strengths.join("; ")}.\nConcerns: ${a.concerns.join("; ")}.\nRecommended: ${a.recommendedAction}`,
+        language: "fr",
+      })
+      .returning({ id: opportunities.id });
+
+    // Mark the generation accepted and link it (ownership-scoped).
+    await db
+      .update(aiGenerations)
+      .set({
+        status: "accepted",
+        opportunityId: op.id,
+        companyId,
+        updatedAt: new Date(),
+      })
+      .where(and(eq(aiGenerations.id, generationId), eq(aiGenerations.userId, user.id)));
+
+    revalidatePath("/opportunities");
+    return { success: true, opportunityId: op.id };
+  } catch {
+    return { error: "Could not create the opportunity. Please try again." };
   }
-
-  const [op] = await db
-    .insert(opportunities)
-    .values({
-      userId: user.id,
-      companyId,
-      title: a.role.trim() || "Untitled opportunity",
-      status: "detected",
-      priority: "medium",
-      probability: Math.round(a.matchScore),
-      dailyRate: a.estimatedDailyRate ?? 0,
-      location: emptyToNull(a.location),
-      remotePolicy: matchRemotePolicy(a.remotePolicy),
-      technologies: a.technologies,
-      description: a.explanation,
-      notes: `AI match ${a.matchScore}/100.\nStrengths: ${a.strengths.join("; ")}.\nConcerns: ${a.concerns.join("; ")}.\nRecommended: ${a.recommendedAction}`,
-      language: "fr",
-    })
-    .returning({ id: opportunities.id });
-
-  // Mark the generation accepted and link it (ownership-scoped).
-  await db
-    .update(aiGenerations)
-    .set({
-      status: "accepted",
-      opportunityId: op.id,
-      companyId,
-      updatedAt: new Date(),
-    })
-    .where(and(eq(aiGenerations.id, generationId), eq(aiGenerations.userId, user.id)));
-
-  revalidatePath("/opportunities");
-  return { success: true, opportunityId: op.id };
 }
