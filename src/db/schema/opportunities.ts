@@ -25,6 +25,7 @@ export const opportunities = pgTable(
     }),
     title: text("title").notNull(),
     source: text("source"),
+    sourceUrl: text("source_url"),
     status: text("status").notNull().default("detected"),
     priority: text("priority").notNull().default("medium"),
     probability: integer("probability"),
