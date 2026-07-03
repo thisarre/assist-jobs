@@ -30,13 +30,13 @@ export function PipelineSummaryCard({ pipeline }: { pipeline: PipelineSummary })
               {pipeline.activeCount} active{" "}
               {pipeline.activeCount > 1 ? "opportunities" : "opportunity"}
               {pipeline.avgDailyRate != null && (
-                <> · avg rate {pipeline.avgDailyRate} €</>
+                <> · avg rate €{pipeline.avgDailyRate}</>
               )}
             </p>
           </>
         )}
         {pipeline.wonCount > 0 && (
-          <p className="text-sm text-emerald-500">
+          <p className="text-sm text-green-500">
             ✓ {pipeline.wonCount} won
           </p>
         )}
