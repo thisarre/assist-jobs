@@ -49,8 +49,12 @@ export function OutreachPanel({ opportunityId, defaultLanguage }: OutreachPanelP
   async function onCopy() {
     if (!result) return;
     const text = (result.subject ? `${result.subject}\n\n` : "") + result.body;
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch {
+      setError("Could not copy to clipboard.");
+    }
   }
 
   return (
