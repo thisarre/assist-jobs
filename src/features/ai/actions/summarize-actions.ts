@@ -18,8 +18,10 @@ type SummarizeResult =
 type ApplyResult = { success: true } | { error: string };
 
 const inputSchema = z.object({
-  companyId: z.string().min(1),
-  text: z.string().trim().min(1, "Paste some text first"),
+  // A UUID guard prevents a malformed id from crashing the pre-LLM query;
+  // the length cap keeps a huge paste from blowing up cost/latency.
+  companyId: z.string().uuid(),
+  text: z.string().trim().min(1, "Paste some text first").max(20000),
 });
 
 export async function summarizeCompany(input: unknown): Promise<SummarizeResult> {

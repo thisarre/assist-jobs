@@ -131,6 +131,7 @@ export function CompanySummaryPanel({ companyId }: { companyId: string }) {
             setSummary(null);
             setGenerationId(null);
             setApplied(false);
+            setError(null);
           }}
         >
           Start over
