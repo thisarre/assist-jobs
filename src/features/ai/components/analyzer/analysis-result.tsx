@@ -13,10 +13,11 @@ type Props = {
   onCreate: () => void;
   onReset: () => void;
   creating: boolean;
+  busy: boolean;
   error: string | null;
 };
 
-export function AnalysisResult({ analysis, update, onCreate, onReset, creating, error }: Props) {
+export function AnalysisResult({ analysis, update, onCreate, onReset, creating, busy, error }: Props) {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
@@ -45,15 +46,15 @@ export function AnalysisResult({ analysis, update, onCreate, onReset, creating, 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label htmlFor="a-company">Société</Label>
-          <Input id="a-company" value={analysis.companyName} onChange={(e) => update("companyName", e.target.value)} />
+          <Input id="a-company" value={analysis.companyName} onChange={(e) => update("companyName", e.target.value)} disabled={busy} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="a-role">Rôle</Label>
-          <Input id="a-role" value={analysis.role} onChange={(e) => update("role", e.target.value)} />
+          <Input id="a-role" value={analysis.role} onChange={(e) => update("role", e.target.value)} disabled={busy} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="a-location">Lieu</Label>
-          <Input id="a-location" value={analysis.location} onChange={(e) => update("location", e.target.value)} />
+          <Input id="a-location" value={analysis.location} onChange={(e) => update("location", e.target.value)} disabled={busy} />
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="a-rate">TJM estimé (€)</Label>
@@ -63,6 +64,7 @@ export function AnalysisResult({ analysis, update, onCreate, onReset, creating, 
             min={0}
             value={analysis.estimatedDailyRate ?? ""}
             onChange={(e) => update("estimatedDailyRate", e.target.value === "" ? null : Number(e.target.value))}
+            disabled={busy}
           />
         </div>
       </div>
@@ -74,6 +76,7 @@ export function AnalysisResult({ analysis, update, onCreate, onReset, creating, 
           onChange={(e) =>
             update("technologies", e.target.value.split(",").map((s) => s.trim()).filter(Boolean))
           }
+          disabled={busy}
         />
       </div>
 
@@ -99,10 +102,10 @@ export function AnalysisResult({ analysis, update, onCreate, onReset, creating, 
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
 
       <div className="flex gap-2">
-        <Button onClick={onCreate} disabled={creating} className="flex-1">
+        <Button onClick={onCreate} disabled={busy} className="flex-1">
           {creating ? "Création…" : "Créer l'opportunité"}
         </Button>
-        <Button variant="outline" onClick={onReset} disabled={creating}>
+        <Button variant="outline" onClick={onReset} disabled={busy}>
           Recommencer
         </Button>
       </div>

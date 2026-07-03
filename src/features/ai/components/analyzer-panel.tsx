@@ -24,15 +24,18 @@ export function AnalyzerPanel() {
   const [generationId, setGenerationId] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState<string | null>(null);
+  const [errorPane, setErrorPane] = useState<"source" | "analysis" | null>(null);
 
   const busy = phase !== "idle";
 
   async function onScrape() {
     setPhase("scraping");
     setError(null);
+    setErrorPane(null);
     const result = await scrapeUrl({ url });
     if ("error" in result) {
       setError(result.error);
+      setErrorPane("source");
       setPhase("idle");
       return;
     }
@@ -46,9 +49,11 @@ export function AnalyzerPanel() {
   async function onAnalyze() {
     setPhase("analyzing");
     setError(null);
+    setErrorPane(null);
     const result = await analyzeText({ text });
     if ("error" in result) {
       setError(result.error);
+      setErrorPane("source");
       setPhase("idle");
       return;
     }
@@ -61,9 +66,11 @@ export function AnalyzerPanel() {
     if (!analysis || !generationId) return;
     setPhase("creating");
     setError(null);
+    setErrorPane(null);
     const result = await createOpportunityFromAnalysis(generationId, analysis, sourceUrl);
     if ("error" in result) {
       setError(result.error);
+      setErrorPane("analysis");
       setPhase("idle");
       return;
     }
@@ -80,11 +87,13 @@ export function AnalyzerPanel() {
     setAnalysis(null);
     setGenerationId(null);
     setError(null);
+    setErrorPane(null);
     setPhase("idle");
   }
 
   function onModeChange(next: "url" | "text") {
     setError(null);
+    setErrorPane(null);
     setMode(next);
   }
 
@@ -106,7 +115,7 @@ export function AnalyzerPanel() {
         scraping={phase === "scraping"}
         analyzing={phase === "analyzing"}
         disabled={busy}
-        error={mode === "url" || !analysis ? error : null}
+        error={errorPane === "source" ? error : null}
         onScrape={onScrape}
         onAnalyze={onAnalyze}
       />
@@ -117,7 +126,8 @@ export function AnalyzerPanel() {
         onCreate={onCreate}
         onReset={onReset}
         creating={phase === "creating"}
-        error={analysis ? error : null}
+        busy={busy}
+        error={errorPane === "analysis" ? error : null}
       />
     </div>
   );
