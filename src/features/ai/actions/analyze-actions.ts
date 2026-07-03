@@ -11,12 +11,18 @@ import { REMOTE_POLICIES } from "@/lib/constants";
 import { generateStructured, AiError } from "@/features/ai/provider";
 import { analysisSchema, type Analysis } from "@/features/ai/schemas/analysis";
 import { buildAnalyzePrompt, ANALYZE_PROMPT_KEY } from "@/features/ai/prompts/analyze";
+import { scrapeUrl as firecrawlScrape, FirecrawlError } from "@/lib/firecrawl";
+import { scrapeInputSchema } from "@/features/ai/schemas/scrape";
 
 type AnalyzeResult =
   | { success: true; generationId: string; analysis: Analysis }
   | { error: string };
 
 type CreateResult = { success: true; opportunityId: string } | { error: string };
+
+type ScrapeResult =
+  | { success: true; markdown: string; title: string | null; sourceUrl: string }
+  | { error: string };
 
 const inputSchema = z.object({ text: z.string().trim().min(1, "Paste some text first") });
 
@@ -72,7 +78,8 @@ export async function analyzeText(input: unknown): Promise<AnalyzeResult> {
 
 export async function createOpportunityFromAnalysis(
   generationId: string,
-  edited: unknown
+  edited: unknown,
+  sourceUrl?: string | null
 ): Promise<CreateResult> {
   const user = await getCurrentUser();
   if (!user) return { error: "Not authenticated" };
@@ -115,6 +122,8 @@ export async function createOpportunityFromAnalysis(
       .insert(opportunities)
       .values({
         userId: user.id,
+        sourceUrl: sourceUrl?.trim() || null,
+        source: sourceUrl?.trim() ? "website" : null,
         companyId,
         title: a.role.trim() || "Untitled opportunity",
         status: "detected",
@@ -145,5 +154,29 @@ export async function createOpportunityFromAnalysis(
     return { success: true, opportunityId: op.id };
   } catch {
     return { error: "Could not create the opportunity. Please try again." };
+  }
+}
+
+export async function scrapeUrl(input: unknown): Promise<ScrapeResult> {
+  const user = await getCurrentUser();
+  if (!user) return { error: "Not authenticated" };
+
+  const parsed = scrapeInputSchema.safeParse(input);
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Enter a valid URL" };
+  }
+
+  try {
+    const page = await firecrawlScrape(parsed.data.url);
+    return {
+      success: true,
+      markdown: page.markdown,
+      title: page.title,
+      sourceUrl: page.sourceUrl,
+    };
+  } catch (e) {
+    return {
+      error: e instanceof FirecrawlError ? e.message : "Could not read that page.",
+    };
   }
 }
