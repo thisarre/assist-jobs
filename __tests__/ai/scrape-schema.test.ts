@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { scrapeInputSchema } from "../scrape";
+import { scrapeInputSchema } from "@/features/ai/schemas/scrape";
 
 describe("scrapeInputSchema", () => {
   it("accepte une URL http(s) valide", () => {

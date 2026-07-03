@@ -11,6 +11,9 @@ export class FirecrawlError extends Error {
 /** Cap the markdown we forward to the LLM (keeps latency & token cost bounded). */
 const MAX_MARKDOWN_CHARS = 20_000;
 
+/** Fail fast on slow pages so errors surface through FirecrawlError, not an infra timeout. */
+const SCRAPE_TIMEOUT_MS = 30_000;
+
 let client: Firecrawl | null = null;
 
 function getClient(): Firecrawl {
@@ -36,6 +39,7 @@ export async function scrapeUrl(url: string): Promise<ScrapedPage> {
     doc = await firecrawl.scrape(url, {
       formats: ["markdown"],
       onlyMainContent: true,
+      timeout: SCRAPE_TIMEOUT_MS,
     });
   } catch (e) {
     throw new FirecrawlError(
@@ -56,6 +60,7 @@ export async function scrapeUrl(url: string): Promise<ScrapedPage> {
   return {
     markdown: markdown.slice(0, MAX_MARKDOWN_CHARS),
     title: doc?.metadata?.title ?? null,
-    sourceUrl: url,
+    // Prefer the URL Firecrawl actually resolved (after redirects) over the raw input.
+    sourceUrl: doc?.metadata?.sourceURL ?? url,
   };
 }
