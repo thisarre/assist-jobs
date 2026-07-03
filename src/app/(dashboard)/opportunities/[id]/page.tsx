@@ -14,6 +14,7 @@ import { InteractionForm } from "@/features/interactions/components/interaction-
 import { InteractionTimeline } from "@/features/interactions/components/interaction-timeline";
 import { loadAssignedTags } from "@/features/tags/queries";
 import { loadInteractions } from "@/features/interactions/queries";
+import { OutreachPanel } from "@/features/ai/components/outreach-panel";
 
 export default async function OpportunityDetailPage({
   params,
@@ -132,6 +133,15 @@ export default async function OpportunityDetailPage({
           </div>
           <div className="mt-4">
             <InteractionTimeline items={timeline} />
+          </div>
+        </div>
+        <div>
+          <h2 className="text-sm font-semibold">AI Outreach</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Generate a tailored message for this opportunity, then edit and copy it.
+          </p>
+          <div className="mt-3">
+            <OutreachPanel opportunityId={opportunity.id} defaultLanguage={opportunity.language} />
           </div>
         </div>
       </section>
