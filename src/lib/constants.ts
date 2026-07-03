@@ -85,3 +85,15 @@ export const LANGUAGES = ["fr", "en"] as const;
 
 // The three entities that interactions and tags can attach to.
 export const ENTITY_TYPES = ["company", "contact", "opportunity"] as const;
+
+// Outreach message types the AI can generate.
+export const MESSAGE_TYPES = [
+  "linkedin_connection",
+  "linkedin_followup",
+  "cold_email",
+  "recruiter_reply",
+  "polite_decline",
+  "interview_prep",
+  "questions_to_ask",
+  "short_pitch",
+] as const;
