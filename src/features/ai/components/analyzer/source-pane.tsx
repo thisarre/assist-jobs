@@ -48,6 +48,7 @@ export function SourcePane({
               placeholder="https://www.free-work.com/…"
               value={url}
               onChange={(e) => onUrlChange(e.target.value)}
+              disabled={disabled}
             />
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button onClick={onScrape} disabled={disabled || url.trim().length === 0}>
@@ -64,6 +65,7 @@ export function SourcePane({
               placeholder="Colle le texte de l'offre ici…"
               value={text}
               onChange={(e) => onTextChange(e.target.value)}
+              disabled={disabled}
             />
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex justify-end">
