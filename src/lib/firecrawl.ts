@@ -45,8 +45,11 @@ export async function scrapeUrl(url: string): Promise<ScrapedPage> {
 
   const markdown = (doc?.markdown ?? "").trim();
   if (!markdown) {
+    const statusCode = doc?.metadata?.statusCode;
     throw new FirecrawlError(
-      "That page returned no readable content (it may require a login)."
+      typeof statusCode === "number" && statusCode >= 400
+        ? `That page could not be read (HTTP ${statusCode}) — it may require a login or block automated access.`
+        : "That page returned no readable content (it may require a login)."
     );
   }
 
