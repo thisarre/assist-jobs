@@ -77,14 +77,24 @@ export function AnalyzerPanel() {
         <div className="inline-flex rounded-md border border-border p-0.5 text-sm">
           <button
             type="button"
-            onClick={() => setMode("text")}
+            aria-pressed={mode === "text"}
+            disabled={busy}
+            onClick={() => {
+              setError(null);
+              setMode("text");
+            }}
             className={`rounded px-3 py-1 ${mode === "text" ? "bg-muted font-medium" : "text-muted-foreground"}`}
           >
             Texte
           </button>
           <button
             type="button"
-            onClick={() => setMode("url")}
+            aria-pressed={mode === "url"}
+            disabled={busy}
+            onClick={() => {
+              setError(null);
+              setMode("url");
+            }}
             className={`rounded px-3 py-1 ${mode === "url" ? "bg-muted font-medium" : "text-muted-foreground"}`}
           >
             URL
@@ -229,6 +239,11 @@ export function AnalyzerPanel() {
           onClick={() => {
             setAnalysis(null);
             setGenerationId(null);
+            setSourceUrl(null);
+            setText("");
+            setUrl("");
+            setError(null);
+            setMode("text");
           }}
         >
           Start over
